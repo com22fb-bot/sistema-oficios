@@ -34,10 +34,6 @@ def init_db():
         fecha TEXT,
         destinatario TEXT,
         concepto TEXT,
-        num_control TEXT,
-        fecha_envio TEXT,
-        guia TEXT,
-        paqueteria TEXT,
         creado_por TEXT
     )
     """)
@@ -49,7 +45,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# 🔥 IMPORTANTE PARA RENDER
+# 🔥 CRÍTICO PARA RENDER
 init_db()
 
 # ===============================
@@ -64,7 +60,7 @@ def siguiente_consecutivo(anio):
     return 1 if row[0] is None else row[0] + 1
 
 # ===============================
-# LOGIN (GLASS UI)
+# LOGIN
 # ===============================
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -103,25 +99,9 @@ def login():
         border-radius:16px;
         width:90%;
         max-width:320px;
-        box-shadow:0 8px 30px rgba(0,0,0,0.4);
     }
-    input {
-        width:100%;
-        padding:12px;
-        margin:10px 0;
-        border-radius:10px;
-        border:none;
-    }
-    button {
-        width:100%;
-        padding:12px;
-        background:#3b82f6;
-        color:white;
-        border:none;
-        border-radius:10px;
-        font-weight:bold;
-    }
-    h2 {text-align:center;}
+    input {width:100%; padding:12px; margin:10px 0; border-radius:10px; border:none;}
+    button {width:100%; padding:12px; background:#3b82f6; color:white; border:none; border-radius:10px;}
     </style>
 
     <div class='card'>
@@ -135,7 +115,24 @@ def login():
     """
 
 # ===============================
-# CONSULTA (GLASS UI)
+# NAVBAR (REUTILIZABLE)
+# ===============================
+def navbar():
+    return f"""
+    <div class='navbar'>
+        <div class='logo'>📄 Sistema Oficios</div>
+
+        <div class='menu'>
+            <a href='/asignar'>Asignación</a>
+            <a href='/consulta'>Consulta</a>
+        </div>
+
+        <div class='user'>{session['usuario']}</div>
+    </div>
+    """
+
+# ===============================
+# CONSULTA
 # ===============================
 @app.route('/consulta')
 def consulta():
@@ -158,44 +155,32 @@ def consulta():
         color:white;
     }}
     .navbar {{
-        padding:15px;
         display:flex;
         justify-content:space-between;
+        padding:15px;
         background: rgba(0,0,0,0.3);
-        backdrop-filter: blur(10px);
+    }}
+    .menu a {{
+        margin:0 10px;
+        color:#93c5fd;
+        text-decoration:none;
     }}
     .container {{padding:20px;}}
     .card {{
-        backdrop-filter: blur(15px);
         background: rgba(255,255,255,0.1);
         padding:20px;
-        border-radius:16px;
+        border-radius:12px;
     }}
-    table {{width:100%; border-collapse:collapse;}}
-    th, td {{padding:10px;}}
-    th {{color:#93c5fd; text-align:left;}}
-    tr:hover {{background: rgba(255,255,255,0.1);}}
-    .btn {{
-        display:inline-block;
-        background:#3b82f6;
-        padding:10px;
-        border-radius:10px;
-        text-decoration:none;
-        color:white;
-        margin-bottom:10px;
-    }}
+    table {{width:100%;}}
     </style>
 
-    <div class='navbar'>
-        <div>📄 Sistema Oficios</div>
-        <div>{session['usuario']}</div>
-    </div>
+    {navbar()}
 
     <div class='container'>
     <div class='card'>
 
     <h3>Últimos Oficios</h3>
-    <a class='btn' href='/asignar'>+ Nuevo Oficio</a>
+    <a href='/asignar'>+ Nuevo Oficio</a>
 
     <table>
     <tr>
@@ -209,13 +194,13 @@ def consulta():
 
     for r in rows:
         oficio = f"{r[1]:03d}/{r[2]}"
-        html += f"<tr><td>{oficio}</td><td>{r[3]}</td><td>{r[4]}</td><td>{r[5]}</td><td>{r[10]}</td></tr>"
+        html += f"<tr><td>{oficio}</td><td>{r[3]}</td><td>{r[4]}</td><td>{r[5]}</td><td>{r[6]}</td></tr>"
 
     html += "</table></div></div>"
     return html
 
 # ===============================
-# ASIGNAR (GLASS UI)
+# ASIGNAR (CON COMBOBOX)
 # ===============================
 @app.route('/asignar', methods=['GET', 'POST'])
 def asignar():
@@ -248,14 +233,10 @@ def asignar():
         margin:0;
         font-family:'Segoe UI';
         background: linear-gradient(135deg, #0f172a, #1e3a8a);
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        height:100vh;
         color:white;
     }}
     .card {{
-        backdrop-filter: blur(15px);
+        margin:50px auto;
         background: rgba(255,255,255,0.1);
         padding:25px;
         border-radius:16px;
@@ -279,23 +260,30 @@ def asignar():
     }}
     </style>
 
+    {navbar()}
+
     <div class='card'>
         <h3>Asignar Oficio</h3>
         <b>Oficio:</b> {oficio}<br><br>
 
         <form method='POST'>
             Fecha:<input name='fecha' value='{datetime.now().date()}'>
-            Enviado a:<input name='enviado'>
+
+            Enviado a:
+            <input list="destinatarios" name="enviado" placeholder="Escribe o selecciona">
+            <datalist id="destinatarios">
+                <option value="Rosa Isela Moreno">
+                <option value="Angélica Hernández Belmon">
+                <option value="Víctor Herrera">
+                <option value="Belén Maldonado">
+            </datalist>
+
             Concepto:<input name='concepto'>
+
             <button>Asignar</button>
         </form>
     </div>
     """
-
-# ===============================
-# INIT DB (CRÍTICO PARA RENDER)
-# ===============================
-init_db()
 
 # ===============================
 # RUN
